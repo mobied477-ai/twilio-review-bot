@@ -18,10 +18,9 @@ def home():
 @app.route("/send-sms", methods=["POST"])
 def send_sms():
     customer_phone = request.form.get("phone")
-    shop_name = request.form.get("shop", "our store")
     
     message = client.messages.create(
-        body=f"Thank you for visiting {shop_name}! How would you rate your service today from 1 to 5?",
+        body="Your Appt is coming up on-",
         from_=TWILIO_NUMBER,
         to=customer_phone
     )
