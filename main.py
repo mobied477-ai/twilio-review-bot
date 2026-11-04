@@ -1,30 +1,23 @@
 import os
+import requests
 from flask import Flask, request
-from twilio.rest import Client
 
 app = Flask(__name__)
 
-# Load Twilio credentials from your Render environment variables
-ACCOUNT_SID = os.environ.get("TWILIO_ACCOUNT_SID")
-AUTH_TOKEN = os.environ.get("TWILIO_AUTH_TOKEN")
-TWILIO_NUMBER = os.environ.get("TWILIO_PHONE_NUMBER")
-
-client = Client(ACCOUNT_SID, AUTH_TOKEN)
-
-@app.route("/")
-def home():
-    return "Twilio Review Bot is running!"
+# Paste your unique Webhook.site URL here
+MOCK_SANDBOX_URL = "https://webhook.site/your-unique-token"
 
 @app.route("/send-sms", methods=["POST"])
 def send_sms():
     customer_phone = request.form.get("phone")
+    shop = request.form.get("shop", "Our Store")
     
-    message = client.messages.create(
-        body="Your Appt is coming up on-",
-        from_=TWILIO_NUMBER,
-        to=customer_phone
-    )
-    return f"Message sent! SID: {message.sid}"
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    payload = {
+        "to": customer_phone,
+        "message": f"Thank you for visiting {shop}! How would you rate your service today from 1 to 5?"
+    }
+    
+    # Fires the request straight to your free browser inbox
+    response = requests.post(MOCK_SANDBOX_URL, json=payload)
+    
+    return f"Mock SMS captured! Status Code: {response.status_code}"
