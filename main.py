@@ -5,7 +5,8 @@ from flask import Flask, request
 app = Flask(__name__)
 
 # Paste your unique Webhook.site URL here
-MOCK_SANDBOX_URL = "https://webhook.site/your-unique-token"
+MOCK_SANDBOX_URL = " https://webhook.site/d7863f8b-1dd5-44d6-8f3d-910aeea69a15
+"
 
 @app.route("/send-sms", methods=["POST"])
 def send_sms():
