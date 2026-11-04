@@ -20,3 +20,12 @@ def send_sms():
     response = requests.post(MOCK_SANDBOX_URL, json=payload)
     
     return f"Mock SMS captured! Status Code: {response.status_code}"
+@app.route("/sms", methods=["POST"])
+def inbound_sms():
+    sender_phone = request.form.get("From")
+    rating_text = request.form.get("Body")
+    
+    # Process the incoming rating
+    print(f"Received rating '{rating_text}' from {sender_phone}")
+    
+    return f"Received rating: {rating_text}", 200
