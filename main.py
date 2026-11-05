@@ -7,11 +7,45 @@ app = Flask(__name__)
 TEXTBEE_API_KEY = os.environ.get("TEXTBEE_API_KEY")
 TEXTBEE_DEVICE_ID = os.environ.get("TEXTBEE_DEVICE_ID")
 
+# Root URL loads the web interface directly
+@app.route("/")
+@app.route("/virtual-coffee-shop")
+def virtual_shop():
+    return '''
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>CoffeeShop POS Test</title>
+        <style>
+            body { font-family: Arial, sans-serif; max-width: 400px; margin: 50px auto; padding: 25px; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+            h2 { color: #6f4e37; margin-top: 0; }
+            input, button { width: 100%; padding: 12px; margin: 10px 0; box-sizing: border-box; border-radius: 4px; font-size: 16px; }
+            input { border: 1px solid #ccc; }
+            button { background-color: #6f4e37; color: white; border: none; font-weight: bold; cursor: pointer; }
+            button:hover { background-color: #5a3e2b; }
+        </style>
+    </head>
+    <body>
+        <h2>☕ CoffeeShop POS Test</h2>
+        <p>Send a rating request SMS to test your review bot.</p>
+        <form action="/send-sms" method="POST">
+            <label>Customer Phone Number:</label>
+            <input type="text" name="phone" placeholder="+1234567890" required>
+            <input type="hidden" name="shop" value="CoffeeShop">
+            <button type="submit">Complete Order & Send SMS</button>
+        </form>
+    </body>
+    </html>
+    '''
+
 @app.route("/send-sms", methods=["POST"])
 def send_sms():
-    customer_phone = request.form.get("phone")
-    shop = request.form.get("shop", "Our Store")
+    customer_phone = request.form.get("phone") or (request.get_json(silent=True) or {}).get("phone")
+    shop = request.form.get("shop") or (request.get_json(silent=True) or {}).get("shop", "CoffeeShop")
     
+    if not customer_phone:
+        return jsonify({"error": "Missing phone number"}), 400
+
     url = f"https://api.textbee.dev/api/v1/gateway/devices/{TEXTBEE_DEVICE_ID}/send-sms"
     headers = {"x-api-key": TEXTBEE_API_KEY}
     payload = {
@@ -20,7 +54,7 @@ def send_sms():
     }
     
     response = requests.post(url, json=payload, headers=headers)
-    return f"SMS dispatched via your phone! Status: {response.status_code}"
+    return jsonify({"status": "dispatched", "shop": shop, "gateway_status": response.status_code}), 200
 
 @app.route("/sms", methods=["POST"])
 def inbound_sms():
@@ -45,7 +79,7 @@ def inbound_sms():
 
     print(f"Extracted Sender: '{sender_phone}', Message: '{rating_text}'")
 
-    # Ignore outbound review requests echoed back by the phone gateway
+    # Filter out outbound messages echoed back by the phone device
     if rating_text.startswith("Thank you for visiting") or rating_text.startswith("Thank you so much") or rating_text.startswith("We're sorry"):
         print("Ignored: Outbound bot message echoed by the device.")
         return jsonify({"status": "ignored", "reason": "Outbound echo"}), 200
@@ -57,9 +91,9 @@ def inbound_sms():
         return jsonify({"status": "ignored", "reason": "Not a numeric rating"}), 200
 
     if rating >= 4:
-        reply_message = "Thank you so much! Please consider leaving us a 5-star review on Google: https://g.page/r/your-link"
+        reply_message = "Thank you so much! Please consider leaving us a 5-star review on Google: https://g.page/r/your-google-review-link"
     else:
-        reply_message = "We're sorry your experience wasn't great. Could you reply with what went wrong so we can fix it?"
+        reply_message = "We're sorry your experience wasn't 5-star. Could you reply with what went wrong so we can fix it?"
 
     if sender_phone:
         url = f"https://api.textbee.dev/api/v1/gateway/devices/{TEXTBEE_DEVICE_ID}/send-sms"
