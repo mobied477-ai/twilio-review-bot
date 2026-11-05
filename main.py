@@ -7,8 +7,8 @@ app = Flask(__name__)
 TEXTBEE_API_KEY = os.environ.get("TEXTBEE_API_KEY")
 TEXTBEE_DEVICE_ID = os.environ.get("TEXTBEE_DEVICE_ID")
 
-# Direct Google Review link (Replace with your actual direct review URL)
-GOOGLE_REVIEW_LINK = "https://g.page/r/your-google-review-link/review"
+# Update with Sultan Grill's actual direct Google Review link
+GOOGLE_REVIEW_LINK = "https://g.page/r/your-sultan-grill-review-link/review"
 
 @app.route("/")
 @app.route("/virtual-coffee-shop")
@@ -17,23 +17,23 @@ def virtual_shop():
     <!DOCTYPE html>
     <html>
     <head>
-        <title>CoffeeShop POS Test</title>
+        <title>Sultan Grill POS</title>
         <style>
             body { font-family: Arial, sans-serif; max-width: 400px; margin: 50px auto; padding: 25px; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-            h2 { color: #6f4e37; margin-top: 0; }
+            h2 { color: #b32400; margin-top: 0; }
             input, button { width: 100%; padding: 12px; margin: 10px 0; box-sizing: border-box; border-radius: 4px; font-size: 16px; }
             input { border: 1px solid #ccc; }
-            button { background-color: #6f4e37; color: white; border: none; font-weight: bold; cursor: pointer; }
-            button:hover { background-color: #5a3e2b; }
+            button { background-color: #b32400; color: white; border: none; font-weight: bold; cursor: pointer; }
+            button:hover { background-color: #8b1c00; }
         </style>
     </head>
     <body>
-        <h2>☕ CoffeeShop POS Test</h2>
-        <p>Send a rating request SMS to test your review bot.</p>
+        <h2>🍖 Sultan Grill POS</h2>
+        <p>Send a review request SMS to a customer.</p>
         <form action="/send-sms" method="POST">
             <label>Customer Phone Number:</label>
             <input type="text" name="phone" placeholder="+1234567890" required>
-            <input type="hidden" name="shop" value="CoffeeShop">
+            <input type="hidden" name="shop" value="Sultan Grill">
             <button type="submit">Complete Order & Send SMS</button>
         </form>
     </body>
@@ -43,7 +43,7 @@ def virtual_shop():
 @app.route("/send-sms", methods=["POST"])
 def send_sms():
     customer_phone = request.form.get("phone") or (request.get_json(silent=True) or {}).get("phone")
-    shop = request.form.get("shop") or (request.get_json(silent=True) or {}).get("shop", "CoffeeShop")
+    shop = request.form.get("shop") or (request.get_json(silent=True) or {}).get("shop", "Sultan Grill")
     
     if not customer_phone:
         return jsonify({"error": "Missing phone number"}), 400
@@ -51,10 +51,9 @@ def send_sms():
     url = f"https://api.textbee.dev/api/v1/gateway/devices/{TEXTBEE_DEVICE_ID}/send-sms"
     headers = {"x-api-key": TEXTBEE_API_KEY}
     
-    # Ultra-short initial message to minimize effort
     payload = {
         "recipients": [customer_phone],
-        "message": f"Thanks for visiting {shop}! Rate your experience today from 1 to 5 by replying to this text."
+        "message": f"Thanks for dining at {shop}! Rate your experience today from 1 to 5 by replying to this text."
     }
     
     response = requests.post(url, json=payload, headers=headers)
@@ -67,8 +66,8 @@ def send_sms():
         <style>
             body {{ font-family: Arial, sans-serif; max-width: 400px; margin: 50px auto; padding: 25px; border: 1px solid #ddd; border-radius: 8px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }}
             h2 {{ color: #2e7d32; }}
-            a {{ display: inline-block; margin-top: 20px; padding: 12px 20px; background-color: #6f4e37; color: white; text-decoration: none; border-radius: 4px; font-weight: bold; }}
-            a:hover {{ background-color: #5a3e2b; }}
+            a {{ display: inline-block; margin-top: 20px; padding: 12px 20px; background-color: #b32400; color: white; text-decoration: none; border-radius: 4px; font-weight: bold; }}
+            a:hover {{ background-color: #8b1c00; }}
         </style>
     </head>
     <body>
@@ -104,7 +103,7 @@ def inbound_sms():
     print(f"Extracted Sender: '{sender_phone}', Message: '{rating_text}'")
 
     # Filter out outbound messages echoed back by the phone device
-    if rating_text.startswith("Thanks for visiting") or rating_text.startswith("Awesome!") or rating_text.startswith("We're sorry"):
+    if rating_text.startswith("Thanks for dining") or rating_text.startswith("Awesome!") or rating_text.startswith("We're sorry"):
         print("Ignored: Outbound bot message echoed by the device.")
         return jsonify({"status": "ignored", "reason": "Outbound echo"}), 200
 
@@ -114,11 +113,10 @@ def inbound_sms():
         print("Ignored: Message is not a clean integer rating.")
         return jsonify({"status": "ignored", "reason": "Not a numeric rating"}), 200
 
-    # High rating: Send short message + direct Google Review pop-up URL
     if rating >= 4:
-        reply_message = f"Awesome! Tap here to quickly leave your 5-star review on Google: {GOOGLE_REVIEW_LINK}"
+        reply_message = f"Awesome! Tap here to quickly leave your 5-star review for Sultan Grill on Google: {GOOGLE_REVIEW_LINK}"
     else:
-        reply_message = "We're sorry your experience wasn't 5-star. Could you reply with what went wrong so we can fix it?"
+        reply_message = "We're sorry your experience wasn't 5-star. Could you reply with what went wrong so the manager can fix it?"
 
     if sender_phone:
         url = f"https://api.textbee.dev/api/v1/gateway/devices/{TEXTBEE_DEVICE_ID}/send-sms"
