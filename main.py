@@ -24,14 +24,33 @@ def send_sms():
 
 @app.route("/sms", methods=["POST"])
 def inbound_sms():
-    # textbee incoming webhook payload structure
-    data = request.json or {}
-    sender_phone = data.get("sender") or request.form.get("sender", "")
-    rating_text = str(data.get("message") or request.form.get("message", "")).strip()
+    # Parse incoming JSON body or form data
+    data = request.get_json(silent=True) or request.form.to_dict() or {}
+    print("RECEIVED WEBHOOK PAYLOAD:", data)  # Logs directly to Render Console
+
+    # Handle textbee nested payload structures (e.g. data.data or data.payload)
+    nested = data.get("data") or data.get("payload") or {}
+    if not isinstance(nested, dict):
+        nested = {}
+
+    sender_phone = (
+        data.get("sender") 
+        or nested.get("sender") 
+        or request.form.get("sender", "")
+    )
     
+    rating_text = str(
+        data.get("message") 
+        or nested.get("message") 
+        or request.form.get("message", "")
+    ).strip()
+
+    print(f"Extracted Sender: '{sender_phone}', Message: '{rating_text}'")
+
     try:
         rating = int(rating_text)
     except ValueError:
+        print("Ignored: Message is not a clean integer rating.")
         return jsonify({"status": "ignored", "reason": "Not a numeric rating"}), 200
 
     if rating >= 4:
@@ -39,12 +58,14 @@ def inbound_sms():
     else:
         reply_message = "We're sorry your experience wasn't great. Could you reply with what went wrong so we can fix it?"
 
-    # Send the follow-up text back out through your phone
-    url = f"https://api.textbee.dev/api/v1/gateway/devices/{TEXTBEE_DEVICE_ID}/send-sms"
-    headers = {"x-api-key": TEXTBEE_API_KEY}
-    requests.post(url, json={
-        "recipients": [sender_phone],
-        "message": reply_message
-    }, headers=headers)
+    # Send automated response back via textbee API
+    if sender_phone:
+        url = f"https://api.textbee.dev/api/v1/gateway/devices/{TEXTBEE_DEVICE_ID}/send-sms"
+        headers = {"x-api-key": TEXTBEE_API_KEY}
+        res = requests.post(url, json={
+            "recipients": [sender_phone],
+            "message": reply_message
+        }, headers=headers)
+        print(f"Reply dispatch status: {res.status_code}")
 
     return jsonify({"status": "success", "rating": rating}), 200
