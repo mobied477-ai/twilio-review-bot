@@ -7,7 +7,7 @@ app = Flask(__name__)
 TEXTBEE_API_KEY = os.environ.get("TEXTBEE_API_KEY")
 TEXTBEE_DEVICE_ID = os.environ.get("TEXTBEE_DEVICE_ID")
 
-# Update with Sultan Grill's actual direct Google Review link
+# Direct Google Review Link for Sultan Grill
 GOOGLE_REVIEW_LINK = "https://g.page/r/your-sultan-grill-review-link/review"
 
 @app.route("/")
@@ -102,8 +102,9 @@ def inbound_sms():
 
     print(f"Extracted Sender: '{sender_phone}', Message: '{rating_text}'")
 
-    # Filter out outbound messages echoed back by the phone device
-    if rating_text.startswith("Thanks for dining") or rating_text.startswith("Awesome!") or rating_text.startswith("We're sorry"):
+    # Catch all outbound bot prefixes to ignore device echoes
+    ignored_keywords = ["Thanks for", "Awesome!", "We're sorry", "Thank you"]
+    if any(rating_text.startswith(kw) for kw in ignored_keywords):
         print("Ignored: Outbound bot message echoed by the device.")
         return jsonify({"status": "ignored", "reason": "Outbound echo"}), 200
 
@@ -113,6 +114,7 @@ def inbound_sms():
         print("Ignored: Message is not a clean integer rating.")
         return jsonify({"status": "ignored", "reason": "Not a numeric rating"}), 200
 
+    # 4 or 5 sends the Google Review link
     if rating >= 4:
         reply_message = f"Awesome! Tap here to quickly leave your 5-star review for Sultan Grill on Google: {GOOGLE_REVIEW_LINK}"
     else:
