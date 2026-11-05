@@ -1,3 +1,27 @@
+import os
+import requests
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
+
+TEXTBEE_API_KEY = os.environ.get("TEXTBEE_API_KEY")
+TEXTBEE_DEVICE_ID = os.environ.get("TEXTBEE_DEVICE_ID")
+
+@app.route("/send-sms", methods=["POST"])
+def send_sms():
+    customer_phone = request.form.get("phone")
+    shop = request.form.get("shop", "Our Store")
+    
+    url = f"https://api.textbee.dev/api/v1/gateway/devices/{TEXTBEE_DEVICE_ID}/send-sms"
+    headers = {"x-api-key": TEXTBEE_API_KEY}
+    payload = {
+        "recipients": [customer_phone],
+        "message": f"Thank you for visiting {shop}! How would you rate your service today from 1 to 5?"
+    }
+    
+    response = requests.post(url, json=payload, headers=headers)
+    return f"SMS dispatched via your phone! Status: {response.status_code}"
+
 @app.route("/sms", methods=["POST"])
 def inbound_sms():
     data = request.get_json(silent=True) or request.form.to_dict() or {}
@@ -21,7 +45,7 @@ def inbound_sms():
 
     print(f"Extracted Sender: '{sender_phone}', Message: '{rating_text}'")
 
-    # Ignore our own outbound review requests echoed by the Android device
+    # Ignore outbound review requests echoed back by the phone gateway
     if rating_text.startswith("Thank you for visiting") or rating_text.startswith("Thank you so much") or rating_text.startswith("We're sorry"):
         print("Ignored: Outbound bot message echoed by the device.")
         return jsonify({"status": "ignored", "reason": "Outbound echo"}), 200
