@@ -7,8 +7,8 @@ app = Flask(__name__)
 TEXTBEE_API_KEY = os.environ.get("TEXTBEE_API_KEY")
 TEXTBEE_DEVICE_ID = os.environ.get("TEXTBEE_DEVICE_ID")
 
-# Replace this with your actual Google Review link when ready
-GOOGLE_REVIEW_LINK = "https://g.page/r/your-google-review-link"
+# Direct Google Review link (Replace with your actual direct review URL)
+GOOGLE_REVIEW_LINK = "https://g.page/r/your-google-review-link/review"
 
 @app.route("/")
 @app.route("/virtual-coffee-shop")
@@ -50,14 +50,15 @@ def send_sms():
 
     url = f"https://api.textbee.dev/api/v1/gateway/devices/{TEXTBEE_DEVICE_ID}/send-sms"
     headers = {"x-api-key": TEXTBEE_API_KEY}
+    
+    # Ultra-short initial message to minimize effort
     payload = {
         "recipients": [customer_phone],
-        "message": f"Thank you for visiting {shop}! How would you rate your service today from 1 to 5?"
+        "message": f"Thanks for visiting {shop}! Rate your experience today from 1 to 5 by replying to this text."
     }
     
     response = requests.post(url, json=payload, headers=headers)
     
-    # Return a clean HTML confirmation page instead of raw JSON
     return f'''
     <!DOCTYPE html>
     <html>
@@ -103,7 +104,7 @@ def inbound_sms():
     print(f"Extracted Sender: '{sender_phone}', Message: '{rating_text}'")
 
     # Filter out outbound messages echoed back by the phone device
-    if rating_text.startswith("Thank you for visiting") or rating_text.startswith("Thank you so much") or rating_text.startswith("We're sorry"):
+    if rating_text.startswith("Thanks for visiting") or rating_text.startswith("Awesome!") or rating_text.startswith("We're sorry"):
         print("Ignored: Outbound bot message echoed by the device.")
         return jsonify({"status": "ignored", "reason": "Outbound echo"}), 200
 
@@ -113,9 +114,9 @@ def inbound_sms():
         print("Ignored: Message is not a clean integer rating.")
         return jsonify({"status": "ignored", "reason": "Not a numeric rating"}), 200
 
-    # 4-5 stars trigger the Google Review link; 1-3 stars request private feedback
+    # High rating: Send short message + direct Google Review pop-up URL
     if rating >= 4:
-        reply_message = f"Thank you so much! Please consider leaving us a 5-star review on Google: {GOOGLE_REVIEW_LINK}"
+        reply_message = f"Awesome! Tap here to quickly leave your 5-star review on Google: {GOOGLE_REVIEW_LINK}"
     else:
         reply_message = "We're sorry your experience wasn't 5-star. Could you reply with what went wrong so we can fix it?"
 
