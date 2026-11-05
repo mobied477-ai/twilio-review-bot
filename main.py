@@ -7,7 +7,9 @@ app = Flask(__name__)
 TEXTBEE_API_KEY = os.environ.get("TEXTBEE_API_KEY")
 TEXTBEE_DEVICE_ID = os.environ.get("TEXTBEE_DEVICE_ID")
 
-# Root URL loads the web interface directly
+# Replace this with your actual Google Review link when ready
+GOOGLE_REVIEW_LINK = "https://g.page/r/your-google-review-link"
+
 @app.route("/")
 @app.route("/virtual-coffee-shop")
 def virtual_shop():
@@ -54,7 +56,28 @@ def send_sms():
     }
     
     response = requests.post(url, json=payload, headers=headers)
-    return jsonify({"status": "dispatched", "shop": shop, "gateway_status": response.status_code}), 200
+    
+    # Return a clean HTML confirmation page instead of raw JSON
+    return f'''
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>SMS Sent Successfully</title>
+        <style>
+            body {{ font-family: Arial, sans-serif; max-width: 400px; margin: 50px auto; padding: 25px; border: 1px solid #ddd; border-radius: 8px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }}
+            h2 {{ color: #2e7d32; }}
+            a {{ display: inline-block; margin-top: 20px; padding: 12px 20px; background-color: #6f4e37; color: white; text-decoration: none; border-radius: 4px; font-weight: bold; }}
+            a:hover {{ background-color: #5a3e2b; }}
+        </style>
+    </head>
+    <body>
+        <h2>✅ Review Request Sent!</h2>
+        <p>The SMS was successfully dispatched to <b>{customer_phone}</b> for <b>{shop}</b>.</p>
+        <p style="color: #666; font-size: 14px;">Gateway Status: {response.status_code}</p>
+        <a href="/">Send Another Request</a>
+    </body>
+    </html>
+    ''', 200
 
 @app.route("/sms", methods=["POST"])
 def inbound_sms():
@@ -90,8 +113,9 @@ def inbound_sms():
         print("Ignored: Message is not a clean integer rating.")
         return jsonify({"status": "ignored", "reason": "Not a numeric rating"}), 200
 
+    # 4-5 stars trigger the Google Review link; 1-3 stars request private feedback
     if rating >= 4:
-        reply_message = "Thank you so much! Please consider leaving us a 5-star review on Google: https://g.page/r/your-google-review-link"
+        reply_message = f"Thank you so much! Please consider leaving us a 5-star review on Google: {GOOGLE_REVIEW_LINK}"
     else:
         reply_message = "We're sorry your experience wasn't 5-star. Could you reply with what went wrong so we can fix it?"
 
