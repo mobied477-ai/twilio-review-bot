@@ -7,7 +7,7 @@ app = Flask(__name__)
 TEXTBEE_API_KEY = os.environ.get("TEXTBEE_API_KEY")
 TEXTBEE_DEVICE_ID = os.environ.get("TEXTBEE_DEVICE_ID")
 
-# Sultan Grill direct link
+# Direct Google Review Link for Sultan Grill
 GOOGLE_REVIEW_LINK = "https://maps.app.goo.gl/rRDwKvZkcDvzJLEJ9"
 
 @app.route("/")
@@ -67,35 +67,4 @@ def send_sms():
             body {{ font-family: Arial, sans-serif; max-width: 400px; margin: 50px auto; padding: 25px; border: 1px solid #ddd; border-radius: 8px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }}
             h2 {{ color: #2e7d32; }}
             a {{ display: inline-block; margin-top: 20px; padding: 12px 20px; background-color: #b32400; color: white; text-decoration: none; border-radius: 4px; font-weight: bold; }}
-            a:hover {{ background-color: #8b1c00; }}
-        </style>
-    </head>
-    <body>
-        <h2>✅ Review Request Sent!</h2>
-        <p>The SMS was successfully dispatched to <b>{customer_phone}</b> for <b>{shop}</b>.</p>
-        <p style="color: #666; font-size: 14px;">Gateway Status: {response.status_code}</p>
-        <a href="/">Send Another Request</a>
-    </body>
-    </html>
-    ''', 200
-
-@app.route("/sms", methods=["POST"])
-def inbound_sms():
-    data = request.get_json(silent=True) or request.form.to_dict() or {}
-    print("RECEIVED WEBHOOK PAYLOAD:", data)
-
-    nested = data.get("data") or data.get("payload") or {}
-    if not isinstance(nested, dict):
-        nested = {}
-
-    sender_phone = (
-        data.get("sender") 
-        or nested.get("sender") 
-        or request.form.get("sender", "")
-    )
-    
-    rating_text = str(
-        data.get("message") 
-        or nested.get("message") 
-        or request.form.get("message", "")
-    ).strip
+            a:hover {{ background-color: #8b1c
