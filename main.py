@@ -7,7 +7,7 @@ app = Flask(__name__)
 TEXTBEE_API_KEY = os.environ.get("TEXTBEE_API_KEY")
 TEXTBEE_DEVICE_ID = os.environ.get("TEXTBEE_DEVICE_ID")
 
-# Direct Google Review Link for Sultan Grill
+# Sultan Grill direct Google Review link
 GOOGLE_REVIEW_LINK = "https://maps.app.goo.gl/rRDwKvZkcDvzJLEJ9"
 
 @app.route("/")
@@ -32,7 +32,7 @@ def virtual_shop():
         <p>Send a review request SMS to a customer.</p>
         <form action="/send-sms" method="POST">
             <label>Customer Phone Number:</label>
-            <input type="text" name="phone" placeholder="+1234567890" required>
+            <input type="text" name="phone" placeholder="+46701234567" required>
             <input type="hidden" name="shop" value="Sultan Grill">
             <button type="submit">Complete Order & Send SMS</button>
         </form>
@@ -58,13 +58,16 @@ def send_sms():
     
     response = requests.post(url, json=payload, headers=headers)
     
-    return f'''
+    return '''
     <!DOCTYPE html>
     <html>
     <head>
         <title>SMS Sent Successfully</title>
         <style>
-            body {{ font-family: Arial, sans-serif; max-width: 400px; margin: 50px auto; padding: 25px; border: 1px solid #ddd; border-radius: 8px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }}
-            h2 {{ color: #2e7d32; }}
-            a {{ display: inline-block; margin-top: 20px; padding: 12px 20px; background-color: #b32400; color: white; text-decoration: none; border-radius: 4px; font-weight: bold; }}
-            a:hover {{ background-color: #8b1c
+            body { font-family: Arial, sans-serif; max-width: 400px; margin: 50px auto; padding: 25px; border: 1px solid #ddd; border-radius: 8px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+            h2 { color: #2e7d32; }
+            a { display: inline-block; margin-top: 20px; padding: 12px 20px; background-color: #b32400; color: white; text-decoration: none; border-radius: 4px; font-weight: bold; }
+            a:hover { background-color: #8b1c00; }
+        </style>
+    </head>
+    <body>
