@@ -7,8 +7,8 @@ app = Flask(__name__)
 TEXTBEE_API_KEY = os.environ.get("TEXTBEE_API_KEY")
 TEXTBEE_DEVICE_ID = os.environ.get("TEXTBEE_DEVICE_ID")
 
-# Direct Google Review Link for Sultan Grill
-GOOGLE_REVIEW_LINK = "https://maps.app.goo.gl/NQUi7LESSJa9k1z49"
+# Sultan Grill direct link
+GOOGLE_REVIEW_LINK = "https://maps.app.goo.gl/rRDwKvZkcDvzJLEJ9"
 
 @app.route("/")
 @app.route("/virtual-coffee-shop")
@@ -98,35 +98,4 @@ def inbound_sms():
         data.get("message") 
         or nested.get("message") 
         or request.form.get("message", "")
-    ).strip()
-
-    print(f"Extracted Sender: '{sender_phone}', Message: '{rating_text}'")
-
-    # Catch all outbound bot prefixes to ignore device echoes
-    ignored_keywords = ["Thanks for", "Awesome!", "We're sorry", "Thank you"]
-    if any(rating_text.startswith(kw) for kw in ignored_keywords):
-        print("Ignored: Outbound bot message echoed by the device.")
-        return jsonify({"status": "ignored", "reason": "Outbound echo"}), 200
-
-    try:
-        rating = int(rating_text)
-    except ValueError:
-        print("Ignored: Message is not a clean integer rating.")
-        return jsonify({"status": "ignored", "reason": "Not a numeric rating"}), 200
-
-    # 4 or 5 sends the Google Review link
-    if rating >= 4:
-        reply_message = f"Awesome! Tap here to quickly leave your 5-star review for Sultan Grill on Google: {GOOGLE_REVIEW_LINK}"
-    else:
-        reply_message = "We're sorry your experience wasn't 5-star. Could you reply with what went wrong so the manager can fix it?"
-
-    if sender_phone:
-        url = f"https://api.textbee.dev/api/v1/gateway/devices/{TEXTBEE_DEVICE_ID}/send-sms"
-        headers = {"x-api-key": TEXTBEE_API_KEY}
-        res = requests.post(url, json={
-            "recipients": [sender_phone],
-            "message": reply_message
-        }, headers=headers)
-        print(f"Reply dispatch status: {res.status_code}")
-
-    return jsonify({"status": "success", "rating": rating}), 200
+    ).strip
