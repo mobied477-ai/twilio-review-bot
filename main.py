@@ -8,7 +8,7 @@ TEXTBEE_API_KEY = os.environ.get("TEXTBEE_API_KEY")
 TEXTBEE_DEVICE_ID = os.environ.get("TEXTBEE_DEVICE_ID")
 
 # Direct Google Review Link for Sultan Grill
-GOOGLE_REVIEW_LINK = "https://g.page/r/your-sultan-grill-review-link/review"
+GOOGLE_REVIEW_LINK = "https://maps.app.goo.gl/NQUi7LESSJa9k1z49"
 
 @app.route("/")
 @app.route("/virtual-coffee-shop")
